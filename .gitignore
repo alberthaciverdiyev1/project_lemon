@@ -1,0 +1,41 @@
+# Laravel / PHP
+
+/vendor/
+/node_modules/
+/.env
+.env.*
+/storage/*.key
+/public/storage
+/storage/logs/*
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+
+/_ide_helper.php
+/_ide_helper_models.php
+
+/public/hot
+/public/mix-manifest.json
+/public/css/
+/public/js/
+
+composer.lock
+package-lock.json
+yarn.lock
+
+# Go
+
+/bin/
+/vendor/
+/*.exe
+/*.test
+/*.out
+/go.sum
+
+# IDE ve OS dosyaları
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+database.db
