@@ -1,60 +1,22 @@
 package routes
 
 import (
-	"UserService/models"
-	"UserService/utils"
+	"UserService/controllers"
+	"UserService/middlewares"
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func Render(router fiber.Router, db *gorm.DB) {
-	auth := router.Group("/auth")
+func RenderRoutes(app *fiber.App, db *gorm.DB) {
+	authController := controllers.NewAuthController(db)
 
-	auth.Get("/login", func(c *fiber.Ctx) error {
-		return c.SendString("Login route")
-	})
+	// PUBLIC ROUTES
+	auth := app.Group("/auth")
+	auth.Post("/login", authController.Login)
+	auth.Post("/register", authController.Register)
 
-	auth.Post("/register", func(c *fiber.Ctx) error {
-		user := models.User{
-			Name:     c.FormValue("name"),
-			Surname:  c.FormValue("surname"),
-			Email:    c.FormValue("email"),
-			Password: c.FormValue("password"),
-		}
-
-		if user.Email == "" || user.Name == "" || user.Surname == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"code":    fiber.StatusBadRequest,
-				"message": "Username or Surname required",
-			})
-		}
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": err.Error(),
-			})
-		}
-		user.Password = string(hashedPassword)
-		db.Create(&user)
-		token, err := utils.GenerateJwtToken(&user)
-
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": err.Error(),
-			})
-		}
-		c.Cookie(&fiber.Cookie{
-			Name:     "token",
-			Value:    token,
-			HTTPOnly: !c.IsFromLocal(),
-			Secure:   !c.IsFromLocal(),
-			MaxAge:   3600 * 24 * 7, //7 day
-		})
-
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"token": token,
-		})
-
-	})
+	// PROTECTED ROUTES
+	protected := app.Group("/auth", middlewares.AuthMiddleware(db))
+	protected.Put("/update", authController.UpdateProfile)
+	protected.Post("/change-password", authController.ChangePassword)
 }

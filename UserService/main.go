@@ -15,8 +15,8 @@ func main() {
 		AppName: "UserService",
 	})
 
-	routes.Render(app, db)
-
+	routes.RenderRoutes(app, db)
+	
 	fmt.Println("Project running on port 3000")
 
 	if err := app.Listen(":3002"); err != nil {
