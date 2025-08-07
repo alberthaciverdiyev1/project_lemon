@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"UserService/models"
-	"UserService/utils"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"projecLemon/models"
+	"projecLemon/utils"
 )
 
 type AuthController struct {

@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"UserService/models"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
+	"projecLemon/models"
 	"time"
 )
 

@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"UserService/models"
 	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
@@ -9,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"os"
+	"projecLemon/models"
 	"strings"
 )
 

@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"UserService/controllers"
-	"UserService/middlewares"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+	"projecLemon/controllers"
+	"projecLemon/middlewares"
 )
 
 func RenderRoutes(app *fiber.App, db *gorm.DB) {
