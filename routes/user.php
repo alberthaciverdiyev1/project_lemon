@@ -3,10 +3,13 @@
 
 use App\Http\Controllers\AuthController;
 
-$router->post('/register-user', [AuthController::class, 'register']);
-$router->post('/login-user', [AuthController::class, 'login']);
-$router->post('/refresh-user', [AuthController::class, 'refreshToken']);
+$router->group(['prefix' => 'user'], function () use ($router) {
+    $router->post('/register', 'AuthController@register');
+    $router->post('/login', 'AuthController@login');
+    $router->post('/refresh', 'AuthController@refreshToken');
 
-$router->group(['middleware' => 'jwt.auth'], function () use ($router) {
-    $router->get('/user-me', [AuthController::class, 'me']);
+    $router->group(['middleware' => 'jwt.auth'], function () use ($router) {
+        $router->get('/me', 'AuthController@me');
+        $router->post('/logout', 'AuthController@logout');
+    });
 });

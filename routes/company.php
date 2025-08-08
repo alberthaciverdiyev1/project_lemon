@@ -6,12 +6,12 @@ use App\Http\Controllers\CompanyController;
 
 
 $router->group(['prefix' => 'company'], function () use ($router) {
-    $router->post('/register', [CompanyController::class, 'register']);
-    $router->post('/login', [CompanyController::class, 'login']);
-    $router->post('/refresh', [CompanyController::class, 'refreshToken']);
+    $router->post('/register', 'CompanyController@register');
+    $router->post('/login', 'CompanyController@login');
+    $router->post('/refresh', 'CompanyController@refreshToken');
 
     $router->group(['middleware' => 'jwt.auth'], function () use ($router) {
-        $router->get('/me', [CompanyController::class, 'me']);
+        $router->get('/me', 'CompanyController@me');
 
     });
 });

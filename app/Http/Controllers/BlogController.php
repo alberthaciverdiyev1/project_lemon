@@ -29,6 +29,8 @@ class BlogController extends Controller
 
     public function details(string $slug)
     {
+        return "ss";
+
         $blog = Blog::query()
             ->select(['id', 'title', 'slug', 'description'])
             ->where('slug', $slug)

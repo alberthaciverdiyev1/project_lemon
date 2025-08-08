@@ -11,66 +11,82 @@ use Illuminate\Http\Request;
 
 class UserService
 {
-    private User $model;
-
-    public function __construct(User $model)
-    {
-        $this->model = $model;
-    }
-
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|max:255',
+            'surname'  => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $user = $this->model->create([
+        $user = User::create([
             'name'     => $request->name,
+            'surname'  => $request->surname,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        $token = JWTAuth::fromUser($user);
+        $token = auth('users')->login($user);
 
-        return response()->json(['token' => $token, 'user' => $user], 201);
+        return response()->json([
+            'token' => $token,
+            'user'  => $user
+        ], 201);
     }
 
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->only(['email', 'password']);
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        if (!$token = auth('users')->attempt($credentials)) {
+            return response()->json([
+                'error' => 'Email or password is incorrect'
+            ], 401);
         }
 
         return response()->json([
             'token' => $token,
-            'user'  => auth()->user(),
+            'user'  => auth('users')->user()
         ]);
     }
 
     public function me(): JsonResponse
     {
-        return response()->json(auth()->user());
+        return response()->json(auth('users')->user());
     }
-    public function refreshToken()
+
+    public function refreshToken(): JsonResponse
     {
         try {
-            $newToken = JWTAuth::parseToken()->refresh();
+            $newToken = auth('users')->refresh();
 
             return response()->json([
                 'access_token' => $newToken,
                 'token_type'   => 'bearer',
-                'expires_in'   => auth('api')->factory()->getTTL() * 60
+                'expires_in'   => auth('users')->factory()->getTTL() * 60
             ]);
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            return response()->json(['error' => 'Invalid token'], 401);
+            return response()->json([
+                'error' => 'Invalid token'
+            ], 401);
         }
     }
+
+    public function logout(): JsonResponse
+    {
+        try {
+            auth('users')->logout();
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to logout'], 500);
+        }
+    }
+
 }

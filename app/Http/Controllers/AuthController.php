@@ -37,4 +37,8 @@ class AuthController extends Controller
     {
         return $this->service->refreshToken();
     }
+    public function logout()
+    {
+        return $this->service->logout();
+    }
 }

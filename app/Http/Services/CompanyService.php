@@ -7,86 +7,75 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Http\Request;
 
 class CompanyService
 {
-    private Company $model;
-
-    public function __construct(Company $model)
-    {
-        $this->model = $model;
-    }
-
-    /**
-     * Company Register
-     */
     public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:companies,email',
-            'password' => 'required|string|min:6|confirmed',
-            'mail_for_send_resume' => 'required|email|unique:companies,email',
+            'name'               => 'required|string|max:255',
+            'email'              => 'required|email|unique:companies,email',
+            'password'           => 'required|string|min:6|confirmed',
+            'mail_for_send_resume' => 'required|email|unique:companies,mail_for_send_resume',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $company = $this->model->create([
-            'name' => $request->name,
-            'slug' => Str::slug($request->name) . '-' . rand(1000, 9999),
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+        $company = Company::create([
+            'name'               => $request->name,
+            'slug'               => Str::slug($request->name) . '-' . rand(1000, 9999),
+            'email'              => $request->email,
+            'password'           => Hash::make($request->password),
+            'mail_for_send_resume' => $request->mail_for_send_resume
         ]);
 
-        $token = JWTAuth::fromUser($company);
+        $token = auth('companies')->login($company);
 
         return response()->json([
             'message' => 'Company registered successfully',
-            'token' => $token,
+            'token'   => $token,
             'company' => $company,
         ], 201);
     }
 
-    /**
-     * Company Login
-     */
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->only(['email', 'password']);
 
-        if (!$token = JWTAuth::attempt($credentials)) {
+        if (!$token = auth('companies')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $company = auth()->user();
-
         return response()->json([
-            'token' => $token,
-            'company' => $company,
+            'token'   => $token,
+            'company' => auth('companies')->user(),
         ]);
     }
 
     public function me(): JsonResponse
     {
-        return response()->json(auth()->user());
+        return response()->json(auth('companies')->user());
     }
 
-    public function refreshToken()
+    public function refreshToken(): JsonResponse
     {
         try {
-            $newToken = JWTAuth::parseToken()->refresh();
+            $newToken = auth('companies')->refresh();
 
             return response()->json([
                 'access_token' => $newToken,
-                'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60
+                'token_type'   => 'bearer',
+                'expires_in'   => auth('companies')->factory()->getTTL() * 60
             ]);
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            return response()->json(['error' => 'Invalid token'], 401);
+            return response()->json([
+                'error' => 'Invalid token'
+            ], 401);
         }
     }
 }

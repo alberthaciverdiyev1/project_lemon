@@ -4,12 +4,12 @@
 use App\Http\Controllers\BlogController;
 
 $router->group(['prefix' => 'blog'], function () use ($router) {
-    $router->get('/', [BlogController::class, 'list']);
-    $router->get('/{slug}', [BlogController::class, 'details']);
+    $router->get('/', 'BlogController@list');
+    $router->get('/{slug}', 'BlogController@details');
 });
 
 $router->group(['middleware' => 'jwt.auth'], function () use ($router) {
-    $router->post('/', [BlogController::class, 'store']);
-    $router->put('/{slug}', [BlogController::class, 'update']);
-    $router->delete('/{slug}', [BlogController::class, 'destroy']);
+    $router->post('/', 'BlogController@store');
+    $router->put('/{slug}', 'BlogController@update');
+    $router->delete('/{slug}', 'BlogController@destroy');
 });
