@@ -3,7 +3,7 @@
 
 use App\Http\Controllers\BlogController;
 
-$router->group(['prefix' => 'blog'], function () use ($router) {
+$router->group(['prefix' => 'api/blog'], function () use ($router) {
     $router->get('/', 'BlogController@list');
     $router->get('/{slug}', 'BlogController@details');
 });

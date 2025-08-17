@@ -20,16 +20,17 @@ class BlogController extends Controller
     public function list(): AnonymousResourceCollection
     {
         $blogs = Blog::query()
-            ->select('title', 'slug', 'created_at')
+            ->select('title', 'slug', 'description', 'created_at')
             ->latest()
             ->get();
+
 
         return BlogListResource::collection($blogs);
     }
 
+
     public function details(string $slug)
     {
-        return "ss";
 
         $blog = Blog::query()
             ->select(['id', 'title', 'slug', 'description'])
