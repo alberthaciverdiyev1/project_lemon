@@ -12,6 +12,12 @@ class BlogDetailsResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+            'image' => null,
+            'readTime' => ceil(str_word_count(strip_tags($this->description)) / 200),
+            'createdAt' => $this->created_at->format('d.m.Y'),
+        ];
     }
 }

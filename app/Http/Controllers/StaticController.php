@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Transformers\BaseResource;
 use App\Http\Transformers\Blog\BlogDetailsResource;
 use App\Http\Transformers\Blog\BlogListResource;
 use App\Models\Blog;
 use App\Models\BlogImage;
+use App\Models\Contact;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,17 +17,47 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Laravel\Lumen\Routing\Controller;
 
-class BlogController extends Controller
+class StaticController extends Controller
 {
-    public function list(): AnonymousResourceCollection
+    public function contacts(): AnonymousResourceCollection
     {
-        $blogs = Blog::query()
-            ->select('title', 'slug', 'description', 'created_at')
+        $contacts = Contact::query()
             ->latest()
             ->get();
 
+        return BaseResource::collection($contacts);
+    }
 
-        return BlogListResource::collection($blogs);
+    public function addContact(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'text' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $validatedData = $validator->validated();
+
+            $blog = Contact::create([
+                'email' => $validatedData['email'],
+                'text' => $validatedData['text'],
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'message' => 'Contact created successfully.',
+                'status' => 201
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
 
@@ -33,7 +65,7 @@ class BlogController extends Controller
     {
 
         $blog = Blog::query()
-            ->select(['id', 'title', 'slug', 'description','created_at'])
+            ->select(['id', 'title', 'slug', 'description', 'created_at'])
             ->where('slug', $slug)
             ->first();
 
@@ -50,9 +82,9 @@ class BlogController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'       => 'required|string',
+            'title' => 'required|string',
             'description' => 'required|string',
-            'images.*'    => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -94,9 +126,9 @@ class BlogController extends Controller
     public function update(string $slug, Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'title'       => 'sometimes|required|string',
+            'title' => 'sometimes|required|string',
             'description' => 'sometimes|required|string',
-            'images.*'    => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'images.*' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
